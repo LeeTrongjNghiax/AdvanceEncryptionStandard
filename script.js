@@ -73,13 +73,6 @@ extendedEuclideanalgorithmOfPolynomials = (a, b) => {
     return { r, s, t, string };
 }
 
-multiplicativeInverseOfPolynomials = (a, b) => {
-    if (a == "") return "0";
-    for (let i = 0; i < 16 * 16; i++)
-        if ( dividePolynomials( multiplyingPolynomials(i.toString(2), a), b ).remainder == "1" )
-            return i.toString(2);
-}
-
 addingPolynomials = (p1, p2) => {
     if (p1 == "0") return p2;
     if (p2 == "0") return p1;
@@ -106,6 +99,17 @@ addingPolynomials = (p1, p2) => {
 
     // return p3.reverse().join("");
     return dividePolynomials( removeZero(t), "100011011" ).remainder;
+}
+
+xoringPolynomials = (p1, p2) => {
+    let a = p1.split("").reverse().map(x => +x);
+    let b = p2.split("").reverse().map(x => +x);
+    let p3 = [];
+
+    for (let i = 0; i < Math.max(p1.length, p2.length); i++)
+        p3.push( xor( a[i], b[i]) );
+
+    return p3.reverse().join("");
 }
 
 multiplyingPolynomials = (p1, p2) => {
@@ -190,6 +194,13 @@ dividePolynomials = (a, b) => {
         quotient: quotient.reverse().join(""), 
         remainder: r.join("")
     };
+}
+
+multiplicativeInverseOfPolynomials = (a, b) => {
+    if (a == "") return "0";
+    for (let i = 0; i < 16 * 16; i++)
+        if ( dividePolynomials( multiplyingPolynomials(i.toString(2), a), b ).remainder == "1" )
+            return i.toString(2);
 }
 
 numberBinaryMatrix = (number, matrix, expression) => matrix.map(
@@ -289,7 +300,3 @@ inversedMatrix = matrix => {
     )
 }
 
-let keyText = "extraterrestrial";
-
-let h1 = "100011011"; 
-let h2 = hex2bin("ff");
