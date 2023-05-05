@@ -21,14 +21,14 @@ removeZero = str => {
 }
 
 hex2bin = hex => {
-    let bin = (parseInt(hex, 16).toString(2)).padStart(8, '0');
+    let bin = (parseInt(hex, 16).toString(2));
     while (bin[0] == "0") 
         bin = bin.substring(1);
 
     return bin;
 }
 
-bin2hex = bin => Number(parseInt(bin, 2)).toString(16);
+bin2hex = bin => parseInt(bin, 2).toString(16);
 
 extendedEuclideanalgorithm = (a, b) => {
     let r = [a, b]
@@ -300,3 +300,107 @@ inversedMatrix = matrix => {
     )
 }
 
+rotWord = arr => arr.push( arr.shift() )
+
+subWord = arr => arr.map(
+    x => S_BOX[ 
+        parseInt( zeroPad(x, 2)[0], bin_of_hex_63.length * 2 ) 
+    ][ 
+        parseInt( zeroPad(x, 2)[1], bin_of_hex_63.length * 2 ) 
+    ]
+)
+
+g = (arr, i) => {
+    rotWord( arr );
+    arr = subWord( arr );
+
+    let str = "";
+    arr.map(x => str += zeroPad( hex2bin( x ), 8 ) );
+
+    let str2 = zeroPad( ROUND_CONSTANT[i], 8 );
+    for (let j = 0; j < 3; j++)
+        str2 += "00000000";
+
+    let str3 = xoringPolynomials(str, str2);
+
+    let arr2 = [];
+
+    for (let i = 0; i < str3.length / 8; i++) {
+        arr2.push( zeroPad( bin2hex( str3.substring(i * 8, i * 8 + 8) ), 2 ) );
+    }
+
+    return arr2;
+}
+
+createRoundKey = key_hex => {
+    let round_key = [];
+    let N = key_hex.length;
+    let r = (key_hex.length == 4) ? 11 :
+        (key_hex.length == 6) ? 9 : 8;
+
+    for (let i = 0; i < r; i++) {
+        round_key[i] = [];
+        for (let j = 0; j < N; j++)
+            round_key[i][j] = [];
+    }
+
+    for (let i = 0; i < r; i++) {
+        if (i == 0) {
+            for (let j = 0; j < N; j++)
+                for (let k = 0; k < 4; k++)
+                    round_key[i][j][k] = key_hex[j][k];
+        } else {
+            for (let j = 0; j < N; j++) {
+                if (j == 0) {
+                    let temp = JSON.parse( JSON.stringify( round_key[i - 1][N - 1] ) );
+                    
+                    let g_text = "";
+                    g( temp, i - 1 ).map(x => g_text += zeroPad( hex2bin(x), 8 ));
+
+                    let w0_text = "";
+                    round_key[i - 1][0].map(x => w0_text += zeroPad( hex2bin(x), 8 )); 
+
+                    let w4_text = xoringPolynomials(
+                        w0_text, 
+                        g_text
+                    );
+
+                    for (let k = 0; k < 4; k++)
+                        round_key[i][j].push( zeroPad( bin2hex( w4_text.substring(k * 8, k * 8 + 8) ), 2 ) );
+                } else if (N > 6 && j % 4 == 0) {
+                    let temp = JSON.parse( JSON.stringify( round_key[i][j - 1] ) );
+                    
+                    let g_text = "";
+                    subWord( temp ).map(x => g_text += zeroPad( hex2bin(x), 8 ));
+
+                    let w0_text = "";
+                    round_key[i - 1][j].map(x => w0_text += zeroPad( hex2bin(x), 8 )); 
+
+                    let w5_text = xoringPolynomials(
+                        g_text, 
+                        w0_text
+                    );
+
+                    for (let k = 0; k < 4; k++)
+                        round_key[i][j].push( zeroPad( bin2hex( w5_text.substring(k * 8, k * 8 + 8) ), 2 ) );
+                } else {
+                    let w_pre_text = "";
+                    round_key[i - 1][j].map(x => w_pre_text += zeroPad( hex2bin(x), 8 ));
+
+                    let w_curr_text = "";
+                    round_key[i][j - 1].map(x => w_curr_text += zeroPad( hex2bin(x), 8 ));
+
+                    let w5_text = xoringPolynomials(
+                        w_pre_text, 
+                        w_curr_text
+                    );
+
+                    for (let k = 0; k < 4; k++)
+                        round_key[i][j].push( zeroPad( bin2hex( w5_text.substring(k * 8, k * 8 + 8) ), 2 ) );
+                }
+            }
+        }
+    }
+
+    return round_key;
+}
