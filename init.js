@@ -98,16 +98,10 @@ for (let i = 0; i < bin_of_hex_63.length * 2; i++) {
     }
 }
 
-// console.table(MULTIPLICATIVE_INVERSE_TABLE);
-// console.table(S_BOX);
-// console.table(INVERSE_S_BOX);
-
-// let key_hex_16 = "2b7e151628aed2a6abf7158809cf4f3c";
 let key_hex_16 = "000102030405060708090a0b0c0d0e0f";
-
 let key_hex_24 = "000102030405060708090a0b0c0d0e0f1011121314151617";
-let key_hex_32 = "603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4";
-let N = (key_hex_16.length / 2) / 4;
+let key_hex_32 = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f";
+let N = (key_hex_24.length / 2) / 4;
 let keyMatrix = [];
 
 let count = 0;
@@ -117,33 +111,18 @@ for (let i = 0; i < N; i++)
 
 for (let i = 0; i < N; i++)
     for (let j = 0; j < 4; j++) {
-        keyMatrix[i][j] = key_hex_16[count] + key_hex_16[count + 1];
+        keyMatrix[i][j] = key_hex_24[count] + key_hex_24[count + 1];
         count += 2;
     }
 
-// let plainMatrix = transposeMatrix( [
-//     ["32", "43", "f6", "a8"], 
-//     ["88", "5a", "30", "8d"], 
-//     ["31", "31", "98", "a2"], 
-//     ["e0", "37", "07", "34"]
-// ] );
-
-let plainMatrix = transposeMatrix( [
+let plainMatrix = [
     ["00", "11", "22", "33"], 
     ["44", "55", "66", "77"], 
     ["88", "99", "aa", "bb"], 
     ["cc", "dd", "ee", "ff"]
-] );
-
-// let cipherMatrix = [
-//     ["87", "f2", "4d", "97"], 
-//     ["ec", "6e", "4c", "90"], 
-//     ["4a", "c3", "46", "e7"], 
-//     ["8c", "d8", "95", "a6"]
-// ];
+];
 
 let cipherMatrix = encrypt(plainMatrix, keyMatrix);
 
-// console.table( createRoundKey( keyMatrix ) );
-// console.table( cipherMatrix );
-console.table( decrypt(cipherMatrix, keyMatrix) );
+console.table( cipherMatrix );
+console.table( decrypt( transposeMatrix( encrypt(plainMatrix, keyMatrix) ), keyMatrix) );

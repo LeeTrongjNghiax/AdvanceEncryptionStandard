@@ -394,7 +394,7 @@ g = (arr, i) => {
     return arr2;
 }
 
-createRoundKey = key_hex => {
+createRoundKey2 = key_hex => {
     let round_key = [];
     let N = key_hex.length;
     let r = (key_hex.length == 4) ? 11 :
@@ -467,11 +467,11 @@ createRoundKey = key_hex => {
     return round_key;
 }
 
-createRoundKey2 = key_hex => {
+createRoundKey = key_hex => {
     let round_key = [];
     let N = key_hex.length;
     let r = (key_hex.length == 4) ? 11 :
-        (key_hex.length == 6) ? 9 : 8;
+        (key_hex.length == 6) ? 13 : 15;
 
     for (let i = 0; i < 4 * r; i++) {
         round_key[i] = [];
@@ -479,57 +479,79 @@ createRoundKey2 = key_hex => {
 
     for (let i = 0; i < 4 * r; i++) {
         if (i < N) {
-            for (let j = 0; j < N; j++)
+            for (let j = 0; j < 4; j++)
                 round_key[i][j] = key_hex[i][j];
         } else {
-            for (let j = 0; j < N; j++) {
-                if (j == 0) {
-                    let temp = JSON.parse( JSON.stringify( round_key[i - 1][N - 1] ) );
+            if (i % N == 0) {
+                let temp = JSON.parse( JSON.stringify( round_key[i - 1] ) );
+                
+                let g_text = "";
+                let gf = g( temp, i / N - 1);
+                gf.map(x => g_text += zeroPad( hex2bin(x), 8 ));
+
+                let w0_text = "";
+                round_key[i - N].map(x => w0_text += zeroPad( hex2bin(x), 8 )); 
+
+                let w4_text = xoringPolynomials(
+                    w0_text, 
+                    g_text
+                );
+
+                for (let j = 0; j < 4; j++)
+                    round_key[i].push( 
+                        zeroPad( 
+                            bin2hex( 
+                                w4_text.substring(j * 8, j * 8 + 8) 
+                            ), 
+                            2 
+                        ) 
+                    );
+
+                
+            } else if ( N > 6 && i % N == 4 ) {
+                let temp = JSON.parse( JSON.stringify( round_key[i - 1] ) );
                     
-                    let g_text = "";
-                    g( temp, i - 1 ).map(x => g_text += zeroPad( hex2bin(x), 8 ));
+                let g_text = "";
+                subWord( temp, i - N ).map(x => g_text += zeroPad( hex2bin(x), 8 ));
 
-                    let w0_text = "";
-                    round_key[i - 1][0].map(x => w0_text += zeroPad( hex2bin(x), 8 )); 
+                let w0_text = "";
+                round_key[i - N].map(x => w0_text += zeroPad( hex2bin(x), 8 )); 
 
-                    let w4_text = xoringPolynomials(
-                        w0_text, 
-                        g_text
+                let w4_text = xoringPolynomials(
+                    w0_text, 
+                    g_text
+                );
+
+                for (let j = 0; j < 4; j++)
+                    round_key[i].push( 
+                        zeroPad( 
+                            bin2hex( 
+                                w4_text.substring(j * 8, j * 8 + 8) 
+                            ), 
+                            2 
+                        ) 
                     );
+            } else {
+                let w_pre_text = "";
+                round_key[i - 1].map(x => w_pre_text += zeroPad( hex2bin(x), 8 ));
 
-                    for (let k = 0; k < 4; k++)
-                        round_key[i][j].push( zeroPad( bin2hex( w4_text.substring(k * 8, k * 8 + 8) ), 2 ) );
-                } else if (N > 6 && j % 4 == 0) {
-                    let temp = JSON.parse( JSON.stringify( round_key[i][j - 1] ) );
-                    
-                    let g_text = "";
-                    subWord( temp ).map(x => g_text += zeroPad( hex2bin(x), 8 ));
+                let w_curr_text = "";
+                round_key[i - N].map(x => w_curr_text += zeroPad( hex2bin(x), 8 ));
 
-                    let w0_text = "";
-                    round_key[i - 1][j].map(x => w0_text += zeroPad( hex2bin(x), 8 )); 
+                let w5_text = xoringPolynomials(
+                    w_pre_text, 
+                    w_curr_text
+                );
 
-                    let w5_text = xoringPolynomials(
-                        g_text, 
-                        w0_text
+                for (let j = 0; j < 4; j++)
+                    round_key[i].push( 
+                        zeroPad( 
+                            bin2hex( 
+                                w5_text.substring(j * 8, j * 8 + 8) 
+                            ), 
+                            2 
+                        ) 
                     );
-
-                    for (let k = 0; k < 4; k++)
-                        round_key[i][j].push( zeroPad( bin2hex( w5_text.substring(k * 8, k * 8 + 8) ), 2 ) );
-                } else {
-                    let w_pre_text = "";
-                    round_key[i - 1][j].map(x => w_pre_text += zeroPad( hex2bin(x), 8 ));
-
-                    let w_curr_text = "";
-                    round_key[i][j - 1].map(x => w_curr_text += zeroPad( hex2bin(x), 8 ));
-
-                    let w5_text = xoringPolynomials(
-                        w_pre_text, 
-                        w_curr_text
-                    );
-
-                    for (let k = 0; k < 4; k++)
-                        round_key[i][j].push( zeroPad( bin2hex( w5_text.substring(k * 8, k * 8 + 8) ), 2 ) );
-                }
             }
         }
     }
@@ -609,29 +631,6 @@ inverseMixColumn = arr => {
     return arr2;
 }
 
-encrypt = (plainMatrix, keyMatrix) => {
-    let r = (plainMatrix[0].length == 4) ? 11 :
-        (plainMatrix[0].length == 4) ? 13 : 15;
-
-    let outputMatrix = JSON.parse( JSON.stringify( plainMatrix ) );
-    let extendedKey = createRoundKey( keyMatrix );
-
-    for (let i = 0; i < r; i++) {
-        switch (i) {
-            case 0:
-                outputMatrix = JSON.parse( JSON.stringify( hexMatrixBinaryhexMatrix(outputMatrix, transposeMatrix( extendedKey[i] ), xoringPolynomials ) ) );
-                break;
-            case r - 1:
-                outputMatrix = JSON.parse( JSON.stringify( hexMatrixBinaryhexMatrix( shiftRows( subBytes( outputMatrix ) ), transposeMatrix( extendedKey[i] ), xoringPolynomials) ) );
-                break;
-            default: 
-                outputMatrix = JSON.parse( JSON.stringify( hexMatrixBinaryhexMatrix( mixColumn( shiftRows( subBytes( outputMatrix ) ) ), transposeMatrix( extendedKey[i] ), xoringPolynomials) ) );
-        }
-    }
-
-    return outputMatrix;
-}
-
 matrixToString = arr => {
     let str = '';
 
@@ -639,53 +638,274 @@ matrixToString = arr => {
         for (let j = 0; j < arr[0].length; j++)
             str += arr[i][j];
 
-
     return str;
 }
 
-decrypt = (cipherMatrix, keyMatrix) => {
-    let r = (cipherMatrix[0].length == 4) ? 11 :
-        (cipherMatrix[0].length == 4) ? 13 : 15;
+encrypt = (plainMatrix, keyMatrix) => {
+    let r = (keyMatrix.length == 4) ? 11 :
+        (keyMatrix.length == 6) ? 13 : 15;
 
-    let outputMatrix = JSON.parse( JSON.stringify( cipherMatrix ) );
+    let outputMatrix = JSON.parse( JSON.stringify( plainMatrix ) );
     let extendedKey = createRoundKey( keyMatrix );
 
-    // console.log( extendedKey );
+    // console.log( matrixToString( outputMatrix ) );
+    // console.log( matrixToString( extendedKey.slice(0, 4) ) );
 
-    console.log( matrixToString( transposeMatrix( outputMatrix ) ) );
-    console.log( matrixToString( transposeMatrix( transposeMatrix( extendedKey[10] ) ) ) );
-    outputMatrix = hexMatrixBinaryhexMatrix( outputMatrix, transposeMatrix( extendedKey[10] ), xoringPolynomials );
-    console.log( matrixToString( transposeMatrix( outputMatrix ) ) );
+    outputMatrix = JSON.parse( 
+        JSON.stringify( 
+            hexMatrixBinaryhexMatrix(
+                outputMatrix, 
+                extendedKey.slice(0, 4), 
+                xoringPolynomials 
+            ) 
+        ) 
+    );
 
-    for (let i = r - 2; i > 0; i--) {
+    // console.log( matrixToString( outputMatrix ) );
+
+    for (let i = 1; i < r; i++) {
         switch (i) {
-            default:
-                // console.table( extendedKey[i] );
-                // console.table( inverseShiftRows( outputMatrix ) );
-                console.log( matrixToString( transposeMatrix( inverseShiftRows( outputMatrix ) ) ) );
-                console.log( matrixToString( transposeMatrix( inverseSubBytes( inverseShiftRows( outputMatrix ) ) ) ) );
-                console.log( matrixToString( extendedKey[i] ) );
-                console.log( matrixToString( transposeMatrix( hexMatrixBinaryhexMatrix( inverseSubBytes( inverseShiftRows( outputMatrix ) ), transposeMatrix( extendedKey[i] ), xoringPolynomials ) ) ) );
-                console.log( matrixToString( transposeMatrix( inverseMixColumn (hexMatrixBinaryhexMatrix( inverseSubBytes( inverseShiftRows( outputMatrix ) ), transposeMatrix( extendedKey[i] ), xoringPolynomials ) ) ) ) );
-                outputMatrix = JSON.parse( JSON.stringify( inverseMixColumn (hexMatrixBinaryhexMatrix( inverseSubBytes( inverseShiftRows( outputMatrix ) ), transposeMatrix( extendedKey[i] ), xoringPolynomials ) ) ) );
+            case r - 1:
+                // console.log( matrixToString(
+                //     transposeMatrix(
+                //         hexMatrixBinaryhexMatrix( 
+                //                 shiftRows(
+                //                     transposeMatrix(
+                //                         subBytes(
+                //                             outputMatrix
+                //                         )
+                //                     )
+                //                 )
+                //             , 
+                //             transposeMatrix( extendedKey.slice(i * 4, i * 4 + 4) ), 
+                //             xoringPolynomials
+                //         ) 
+                //     )
+                // ) );
+                outputMatrix = JSON.parse( 
+                    JSON.stringify( 
+                        transposeMatrix(
+                            hexMatrixBinaryhexMatrix( 
+                                    shiftRows(
+                                        transposeMatrix(
+                                            subBytes(
+                                                outputMatrix
+                                            )
+                                        )
+                                    )
+                                , 
+                                transposeMatrix( extendedKey.slice(i * 4, i * 4 + 4) ), 
+                                xoringPolynomials
+                            ) 
+                        )
+                    ) 
+                );
                 break;
+            default: 
+                // console.table( matrixToString(
+                //     subBytes(
+                //         outputMatrix
+                //     )
+                // ) );
+                // console.log( matrixToString(
+                //     transposeMatrix(
+                //         shiftRows(
+                //             transposeMatrix(
+                //                 subBytes(
+                //                     outputMatrix
+                //                 )
+                //             )
+                //         )
+                //     )
+                // ) );
+                // console.log( matrixToString( 
+                //     transposeMatrix (
+                //         mixColumn( 
+                //             shiftRows(
+                //                 transposeMatrix(
+                //                     subBytes(
+                //                         outputMatrix
+                //                     )
+                //                 )
+                //             )
+                //         )
+                //     ) 
+                // ) );
+                // console.log( matrixToString( extendedKey.slice(i * 4, i * 4 + 4) ) );
+                // console.log( matrixToString( 
+                //     transposeMatrix(
+                //         hexMatrixBinaryhexMatrix( 
+                //             mixColumn( 
+                //                 shiftRows(
+                //                     transposeMatrix(
+                //                         subBytes(
+                //                             outputMatrix
+                //                         )
+                //                     )
+                //                 )
+                //             ), 
+                //             transposeMatrix( extendedKey.slice(i * 4, i * 4 + 4) ), 
+                //             xoringPolynomials
+                //         ) 
+                //     )
+                // ) );
+                outputMatrix = JSON.parse( 
+                    JSON.stringify( 
+                        transposeMatrix(
+                            hexMatrixBinaryhexMatrix( 
+                                mixColumn( 
+                                    shiftRows(
+                                        transposeMatrix(
+                                            subBytes(
+                                                outputMatrix
+                                            )
+                                        )
+                                    )
+                                ), 
+                                transposeMatrix( extendedKey.slice(i * 4, i * 4 + 4) ), 
+                                xoringPolynomials
+                            ) 
+                        )
+                    ) 
+                );
         }
     }
 
-    let outputMatrix1 = JSON.parse( JSON.stringify( inverseShiftRows( outputMatrix ) ) );
-    
-    console.log( matrixToString( hexMatrixBinaryhexMatrix( 
-        inverseSubBytes( transposeMatrix( outputMatrix1 ) ), 
-        extendedKey[0], 
-        xoringPolynomials
-    ) ) );
-
-    console.table( inverseShiftRows( outputMatrix ) );
-    console.table( inverseSubBytes( inverseShiftRows( outputMatrix ) ) );
-    console.table( extendedKey[0] );
-    console.table( hexMatrixBinaryhexMatrix( inverseSubBytes( inverseShiftRows( outputMatrix ) ), transposeMatrix( extendedKey[0] ), xoringPolynomials ) );
-    console.table( inverseMixColumn (hexMatrixBinaryhexMatrix( inverseSubBytes( inverseShiftRows( outputMatrix ) ), transposeMatrix( extendedKey[0] ), xoringPolynomials ) ) );
-    outputMatrix = inverseMixColumn (hexMatrixBinaryhexMatrix( inverseSubBytes( inverseShiftRows( outputMatrix ) ), transposeMatrix( extendedKey[0] ), xoringPolynomials ) );
-
     return outputMatrix;
+}
+
+decrypt = (cipherMatrix, keyMatrix) => {
+    let outputMatrix = JSON.parse( JSON.stringify( cipherMatrix ) );
+    let extendedKey = createRoundKey( keyMatrix );
+    let r = (keyMatrix.length == 4) ? 11 :
+        (keyMatrix.length == 6) ? 13 : 15;
+
+    // console.log( extendedKey );
+
+    // console.log( matrixToString( transposeMatrix( outputMatrix ) ) );
+    // console.log( matrixToString( 
+    //     extendedKey.slice(-4) 
+    // ) );
+
+    outputMatrix = hexMatrixBinaryhexMatrix( 
+        transposeMatrix( outputMatrix ), 
+        extendedKey.slice(-4), 
+        xoringPolynomials 
+    );
+
+    // console.log( matrixToString( outputMatrix ) );
+
+    for (let i = r - 2; i > 0; i--) {
+        // console.log( (i + 1) * 4 );
+        // console.table( matrixToString( 
+        //     transposeMatrix(
+        //         inverseShiftRows( 
+        //             transposeMatrix( outputMatrix ) 
+        //         ) 
+        //     )
+        // ) );
+        // console.log( matrixToString( 
+        //         inverseSubBytes( 
+        //             transposeMatrix(
+        //                 inverseShiftRows( 
+        //                     transposeMatrix( outputMatrix ) 
+        //                 ) 
+        //             )
+        //         ) 
+        //     ) 
+        // );
+        // console.log( matrixToString( extendedKey.slice((i) * 4, (i) * 4 + 4) ) );
+        // console.log( matrixToString( 
+        //     transposeMatrix( 
+        //         hexMatrixBinaryhexMatrix( 
+        //             transposeMatrix(
+        //                 inverseSubBytes( 
+        //                     transposeMatrix(
+        //                         inverseShiftRows( 
+        //                             transposeMatrix( outputMatrix ) 
+        //                         ) 
+        //                     )
+        //                 )
+        //             ), 
+        //             transposeMatrix(
+        //                 extendedKey.slice((i) * 4, (i) * 4 + 4)
+        //             ), 
+        //             xoringPolynomials 
+        //         ) 
+        //     ) 
+        // ) );
+        // console.log( matrixToString( 
+        //     transposeMatrix( 
+        //         inverseMixColumn(
+                    
+        //                 hexMatrixBinaryhexMatrix( 
+        //                     transposeMatrix(
+        //                         inverseSubBytes( 
+        //                             transposeMatrix(
+        //                                 inverseShiftRows( 
+        //                                     transposeMatrix( outputMatrix ) 
+        //                                 ) 
+        //                             )
+        //                         )
+        //                     ), 
+        //                     transposeMatrix(
+        //                         extendedKey.slice((i) * 4, (i) * 4 + 4)
+        //                     ), 
+        //                     xoringPolynomials 
+        //                 ) 
+                    
+        //         ) 
+        //     ) 
+        // ) );
+
+        outputMatrix = JSON.parse( 
+            JSON.stringify( 
+                transposeMatrix( 
+                    inverseMixColumn(         
+                        hexMatrixBinaryhexMatrix( 
+                            transposeMatrix(
+                                inverseSubBytes( 
+                                    transposeMatrix(
+                                        inverseShiftRows( 
+                                            transposeMatrix( outputMatrix ) 
+                                        ) 
+                                    )
+                                )
+                            ), 
+                            transposeMatrix(
+                                extendedKey.slice((i) * 4, (i) * 4 + 4)
+                            ), 
+                            xoringPolynomials 
+                        ) 
+                    ) 
+                )
+            ) 
+        );
+    }
+    
+    outputMatrix = JSON.parse( 
+        JSON.stringify( 
+            transposeMatrix( 
+                hexMatrixBinaryhexMatrix( 
+                    transposeMatrix(
+                        inverseSubBytes( 
+                            transposeMatrix(
+                                inverseShiftRows( 
+                                    transposeMatrix( outputMatrix ) 
+                                ) 
+                            )
+                        )
+                    ), 
+                    transposeMatrix(
+                        extendedKey.slice(0, 4)
+                    ), 
+                    xoringPolynomials 
+                ) 
+            )
+        ) 
+    );
+
+    // console.log( outputMatrix );
+
+    return transposeMatrix( outputMatrix );
 }

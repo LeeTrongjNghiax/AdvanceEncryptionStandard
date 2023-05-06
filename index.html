@@ -1,70 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advance Encryption Standard</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AES</title>
     <link rel="stylesheet" href="style.css">
     <script src="script.js" defer></script>
     <script src="init.js" defer></script>
-    <script src="eventListener.js" defer></script>
-</head>
-<body>
-    <main>
-        <h1>ADVANCE ENCRYPTION STANDARD</h1>
-        <section>
-            <div id="inputSection">
-                <div id="plainTextSection">
-                    <label for="plainText">Plain text:</label>
-                    <textarea id="plainText" pattern="^[a-zA-Z]+$" rows="1">PAYMOREMONEY</textarea>
-                    <div class="button-list">
-                        <button id="encrypt">Encrypt!</button>
-                        <button id="plainTextClear">Clear</button>
-                    </div>
-                </div>
-                <div id="keySection">
-                    <label for="key">Key:</label>
-                    <div id="keyContainer">
-                        <input type="text" name="key" id="key" pattern="^[a-zA-Z]+$" value="RRFVSVCCT" style="display: block;">
+    <script src="demo.js" defer></script>
+  </head>
+  <body>
+    <h1>AES Encryption</h1>
 
-                        <div id="matrixKey" style="display: none;">
-                            
-                        </div>
-                        <div id="sizeSection" style="display: none;">
-                            <label for="" class="labelSection">Size: </label>
-                            <input type="number" name="matrixSizeInput" id="matrixSizeInput" value="3" min="0">
-                        </div>
-                    </div>
-                    <div id="advanceSettingButton">Advance Setting</div>
-                    <div id="advanceSetting">
-                        <label for="" class="labelSection">KEY INPUT</label>
-                        <div id="keyInputSection">
-                            <input type="button" name="keyInput" class="keyInput" id="matrix" value="MATRIX">
-                            <input type="button" name="keyInput" class="keyInput" id="text" value="TEXT">
-                        </div>
+    <div class="top">
+      <div class="component">
+        <label for="">Text</label>
+        <textarea
+          name=""
+          id="text"
+          cols="40"
+          rows="5"
+          wrap="hard"
+          placeholder="type some text ..."
+        required>Two One Nine Two</textarea>
+      </div>
 
-                        <label for="" class="labelSection">TEMPLATE CHARACTER</label>
-                        <div id="templateCharSection">
-                            <label for="templateChar">Number of plain text bits: </label>
-                            <select name="" id="">
-                                <option value="128">128-bits</option>
-                                <option value="192">192-bits</option>
-                                <option value="256">256-bits</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div id="cipherTextSection">
-                    <label for="cipherText">Cipher text:</label>
-                    <textarea id="cipherText" pattern="^[a-zA-Z]+$" rows="1"></textarea>
-                    <div class="button-list">
-                        <button id="decrypt">Decrypt!</button>
-                        <button id="cipherTextClear">Clear</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-</body>
+      <div class="component">
+        <label for="">Key</label>
+        <div class="inputKey">
+          <select id="selectLengthOfKey">
+            <option value="128" selected>128</option>
+            <option value="192">192</option>
+            <option value="256">256</option>
+          </select>
+          <input type="text" id="keyInput" placeholder="type some text ..." required value="Thats my Kung Fu">
+             
+        </div>
+
+        <p id="noticeKey"></p> 
+      </div>
+
+      <div class="component">
+        <label for="">Result</label>
+        <textarea
+          name=""
+          id="result"
+          cols="40"
+          rows="5"
+          disabled
+          wrap="hard"
+        ></textarea>
+      </div>
+    </div>
+
+    <div class="bottom">
+      <button id="btnEncryption" type="submit" >Encryption</button>
+      <button id="btnDecryption" type="submit">Decryption</button>
+    </div>
+  </body>
 </html>
