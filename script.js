@@ -22,6 +22,7 @@ removeZero = str => {
 
 hex2bin = hex => {
     let bin = (parseInt(hex, 16).toString(2));
+
     while (bin[0] == "0") 
         bin = bin.substring(1);
 
@@ -82,15 +83,12 @@ addingPolynomials = (p1, p2) => {
     let a = p1.split("").reverse().map(x => +x);
     let b = p2.split("").reverse().map(x => +x);
 
-    if (a.length > b.length) {
-        for (let i = b.length; i < a.length; i++) {
+    if (a.length > b.length)
+        for (let i = b.length; i < a.length; i++)
             b[i] = 0;
-        }
-    } else {
-        for (let i = a.length; i < b.length; i++) {
+    else
+        for (let i = a.length; i < b.length; i++)
             a[i] = 0;
-        }
-    }
 
     for (let i = 0; i < Math.max(p1.length, p2.length); i++)
         p3.push( xor( a[i], b[i]) );
@@ -159,7 +157,7 @@ dividePolynomials = (a, b) => {
     let dividend = a.split("").reverse().map(x => +x);
     let divisor = b.split("").reverse().map(x => +x);
     let remainder = JSON.parse( JSON.stringify(dividend) );
-    let quotient = [];
+    let quotient = [1];
 
     for (let i = 0; i < remainder.length - divisor.length; i++) 
         quotient[i] = 0;
@@ -187,14 +185,29 @@ dividePolynomials = (a, b) => {
 
     let r = remainder.reverse();
 
-    while (r[r.length - 1] == 0)
-        r.shift();
-
     return {
         quotient: quotient.reverse().join(""), 
         remainder: r.join("")
     };
 }
+
+moduloPolynomial = p1 => {
+    let arr = p1.split("").map(x => +x);
+    let arr2 = [];
+    let power = [];
+
+    for (let i = 0; i < 4 - 1; i++)
+        arr2[i] = "0";
+
+    for (let i = 0; i < arr.length; i++)
+        if (arr[i] == "1")
+            power.push(i);
+
+    for (let i = 0; i < power.length; i++)
+        arr2[i % 4] = "1";
+
+    return arr2.join("");
+} 
 
 multiplicativeInverseOfPolynomials = (a, b) => {
     if (a == "") return "0";
@@ -211,34 +224,85 @@ numberBinaryMatrix = (number, matrix, expression) => matrix.map(
 
 matrixBinaryMatrix = (m1, m2, expression) => {
     let m3 = [];
-    for (let i = 0; i < m1.length; i++) {
-        m3[i] = []
-    }
+    
+    for (let i = 0; i < m1.length; i++)
+        m3[i] = [];
 
-    for (let i = 0; i < m1.length; i++) {
-        for (let j = 0; j < m1[0].length; j++) {
+    for (let i = 0; i < m1.length; i++)
+        for (let j = 0; j < m1[0].length; j++)
             m3[i][j] = expression(m1[i][j], m2[i][j]);
-        }
-    }
+
+    return m3;
+}
+
+hexMatrixBinaryhexMatrix = (m1, m2, expression) => {
+    let m3 = [];
+    
+    for (let i = 0; i < m1.length; i++)
+        m3[i] = [];
+
+    for (let i = 0; i < m1.length; i++)
+        for (let j = 0; j < m1[0].length; j++)
+            m3[i][j] = zeroPad( bin2hex( expression(zeroPad( hex2bin( m1[i][j] ), 8 ), zeroPad( hex2bin( m2[i][j] ), 8 ) ) ), 2 );
 
     return m3;
 }
 
 matrixMultiplyMatrix = (m1, m2) => {
     let m3 = [];
-    for (let i = 0; i < m1.length; i++) {
-        m3[i] = []
-    }
 
-    for (let i = 0; i < m1.length; i++) {
+    for (let i = 0; i < m1.length; i++)
+        m3[i] = []
+
+    for (let i = 0; i < m1.length; i++)
         for (let j = 0; j < m2[0].length; j++) {
-            let sum = 0
-            for (let k = 0; k < m2.length; k++) {
+            let sum = 0;
+
+            for (let k = 0; k < m2.length; k++)
                 sum += m1[i][k] * m2[k][j];
-            }
+
             m3[i][j] = sum % 2;
         }
-    }
+
+    return m3;
+}
+
+matrixMultiplyMatrix2 = (m1, m2) => {
+    let m3 = [];
+
+    for (let i = 0; i < m1.length; i++)
+        m3[i] = []
+
+    for (let i = 0; i < m1.length; i++)
+        for (let j = 0; j < m2[0].length; j++) {
+            let sum = zeroPad( 
+                dividePolynomials( 
+                    multiplyingPolynomials(
+                        hex2bin( m1[i][0] ), 
+                        hex2bin( m2[0][j] ) 
+                    ), 
+                    REDUCING_POLYNOMIAL
+                ).remainder, 
+                8 
+            );
+
+            for (let k = 1; k < m2.length; k++) {
+                remain = zeroPad(
+                    dividePolynomials( 
+                        multiplyingPolynomials(
+                            hex2bin( m1[i][k] ), 
+                            hex2bin( m2[k][j] ) 
+                        ), 
+                        REDUCING_POLYNOMIAL
+                    ).remainder, 
+                    8
+                );
+                
+                sum = xoringPolynomials(sum, remain);
+            }
+
+            m3[i][j] = bin2hex( sum );
+        }
 
     return m3;
 }
@@ -256,9 +320,8 @@ smallerMatrix = (matrix, i, j) => {
         if (x != i) {
             let rows = [];
             row.map((index, y) => {
-                if (y != j) {
+                if (y != j)
                     rows.push(index);
-                }
             })
             matrix2.push(rows);
         }
@@ -271,9 +334,8 @@ getDet = matrix => {
     if (matrix.length == 1) return matrix[0][0];
     let sum = 0;
 
-    for (let i = 0; i < matrix.length; i++) {
+    for (let i = 0; i < matrix.length; i++)
         sum += Math.pow(-1, 1 + (i + 1)) * matrix[0][i] * getDet(smallerMatrix(matrix, 0, i));
-    }
 
     return sum;
 }
@@ -403,4 +465,146 @@ createRoundKey = key_hex => {
     }
 
     return round_key;
+}
+
+createRoundKey2 = key_hex => {
+    let round_key = [];
+    let N = key_hex.length;
+    let r = (key_hex.length == 4) ? 11 :
+        (key_hex.length == 6) ? 9 : 8;
+
+    for (let i = 0; i < 4 * r; i++) {
+        round_key[i] = [];
+    }
+
+    for (let i = 0; i < 4 * r; i++) {
+        if (i < N) {
+            for (let j = 0; j < N; j++)
+                round_key[i][j] = key_hex[i][j];
+        } else {
+            for (let j = 0; j < N; j++) {
+                if (j == 0) {
+                    let temp = JSON.parse( JSON.stringify( round_key[i - 1][N - 1] ) );
+                    
+                    let g_text = "";
+                    g( temp, i - 1 ).map(x => g_text += zeroPad( hex2bin(x), 8 ));
+
+                    let w0_text = "";
+                    round_key[i - 1][0].map(x => w0_text += zeroPad( hex2bin(x), 8 )); 
+
+                    let w4_text = xoringPolynomials(
+                        w0_text, 
+                        g_text
+                    );
+
+                    for (let k = 0; k < 4; k++)
+                        round_key[i][j].push( zeroPad( bin2hex( w4_text.substring(k * 8, k * 8 + 8) ), 2 ) );
+                } else if (N > 6 && j % 4 == 0) {
+                    let temp = JSON.parse( JSON.stringify( round_key[i][j - 1] ) );
+                    
+                    let g_text = "";
+                    subWord( temp ).map(x => g_text += zeroPad( hex2bin(x), 8 ));
+
+                    let w0_text = "";
+                    round_key[i - 1][j].map(x => w0_text += zeroPad( hex2bin(x), 8 )); 
+
+                    let w5_text = xoringPolynomials(
+                        g_text, 
+                        w0_text
+                    );
+
+                    for (let k = 0; k < 4; k++)
+                        round_key[i][j].push( zeroPad( bin2hex( w5_text.substring(k * 8, k * 8 + 8) ), 2 ) );
+                } else {
+                    let w_pre_text = "";
+                    round_key[i - 1][j].map(x => w_pre_text += zeroPad( hex2bin(x), 8 ));
+
+                    let w_curr_text = "";
+                    round_key[i][j - 1].map(x => w_curr_text += zeroPad( hex2bin(x), 8 ));
+
+                    let w5_text = xoringPolynomials(
+                        w_pre_text, 
+                        w_curr_text
+                    );
+
+                    for (let k = 0; k < 4; k++)
+                        round_key[i][j].push( zeroPad( bin2hex( w5_text.substring(k * 8, k * 8 + 8) ), 2 ) );
+                }
+            }
+        }
+    }
+
+    return round_key;
+}
+
+subBytes = arr => {
+    let arr2 = [];
+
+    for (let i = 0; i < arr.length; i++)
+        arr2[i] = [];
+    
+    arr.map((x, i) => {
+        x.map((y, j) => arr2[i][j] = S_BOX[ 
+            parseInt( arr[i][j][0], bin_of_hex_63.length * 2 ) 
+        ][ 
+            parseInt( arr[i][j][1], bin_of_hex_63.length * 2 ) 
+        ])
+    });
+
+    return arr2;
+}
+
+inverseSubBytes = arr => {
+    let arr2 = [];
+
+    for (let i = 0; i < arr.length; i++)
+        arr2[i] = [];
+    
+    arr.map((x, i) => {
+        x.map((y, j) => arr2[i][j] = INVERSE_S_BOX[ 
+            parseInt( arr[i][j][0], bin_of_hex_63.length * 2 ) 
+        ][ 
+            parseInt( arr[i][j][1], bin_of_hex_63.length * 2 ) 
+        ])
+    });
+
+    return arr2;
+}
+
+shiftRows = arr => {
+    let arr2 = [];
+
+    for (let i = 0; i < arr.length; i++)
+        arr2[i] = [];
+    
+    arr.map((x, i) => {
+        x.map((y, j) => arr2[i][j] = arr[i][(j + i) % 4])
+    });
+
+    return arr2;
+}
+
+inverseShiftRows = arr => {
+    let arr2 = [];
+
+    for (let i = 0; i < arr.length; i++)
+        arr2[i] = [];
+    
+    arr.map((x, i) => {
+        x.map((y, j) => arr2[i][j] = arr[i][mod2(j - i, 4)])
+    });
+
+    return arr2;
+}
+
+mixColumn = arr => {
+    let arr2 = matrixMultiplyMatrix2( FIXED_MATRIX, arr );
+
+    return arr2;
+}
+
+inverseMixColumn = arr => {
+    let arr2 = matrixMultiplyMatrix2( INVERSE_FIXED_MATRIX, arr );
+
+    return arr2;
 }

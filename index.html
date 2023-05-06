@@ -8,11 +8,63 @@
     <link rel="stylesheet" href="style.css">
     <script src="script.js" defer></script>
     <script src="init.js" defer></script>
+    <script src="eventListener.js" defer></script>
 </head>
 <body>
     <main>
-        <h1>Advance Encryption Standard</h1>
-        <section></section>
+        <h1>ADVANCE ENCRYPTION STANDARD</h1>
+        <section>
+            <div id="inputSection">
+                <div id="plainTextSection">
+                    <label for="plainText">Plain text:</label>
+                    <textarea id="plainText" pattern="^[a-zA-Z]+$" rows="1">PAYMOREMONEY</textarea>
+                    <div class="button-list">
+                        <button id="encrypt">Encrypt!</button>
+                        <button id="plainTextClear">Clear</button>
+                    </div>
+                </div>
+                <div id="keySection">
+                    <label for="key">Key:</label>
+                    <div id="keyContainer">
+                        <input type="text" name="key" id="key" pattern="^[a-zA-Z]+$" value="RRFVSVCCT" style="display: block;">
+
+                        <div id="matrixKey" style="display: none;">
+                            
+                        </div>
+                        <div id="sizeSection" style="display: none;">
+                            <label for="" class="labelSection">Size: </label>
+                            <input type="number" name="matrixSizeInput" id="matrixSizeInput" value="3" min="0">
+                        </div>
+                    </div>
+                    <div id="advanceSettingButton">Advance Setting</div>
+                    <div id="advanceSetting">
+                        <label for="" class="labelSection">KEY INPUT</label>
+                        <div id="keyInputSection">
+                            <input type="button" name="keyInput" class="keyInput" id="matrix" value="MATRIX">
+                            <input type="button" name="keyInput" class="keyInput" id="text" value="TEXT">
+                        </div>
+
+                        <label for="" class="labelSection">TEMPLATE CHARACTER</label>
+                        <div id="templateCharSection">
+                            <label for="templateChar">Number of plain text bits: </label>
+                            <select name="" id="">
+                                <option value="128">128-bits</option>
+                                <option value="192">192-bits</option>
+                                <option value="256">256-bits</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div id="cipherTextSection">
+                    <label for="cipherText">Cipher text:</label>
+                    <textarea id="cipherText" pattern="^[a-zA-Z]+$" rows="1"></textarea>
+                    <div class="button-list">
+                        <button id="decrypt">Decrypt!</button>
+                        <button id="cipherTextClear">Clear</button>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 </body>
 </html>
