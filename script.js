@@ -301,7 +301,7 @@ matrixMultiplyMatrix2 = (m1, m2) => {
                 sum = xoringPolynomials(sum, remain);
             }
 
-            m3[i][j] = bin2hex( sum );
+            m3[i][j] = zeroPad( bin2hex( sum ), 2 );
         }
 
     return m3;
@@ -607,4 +607,85 @@ inverseMixColumn = arr => {
     let arr2 = matrixMultiplyMatrix2( INVERSE_FIXED_MATRIX, arr );
 
     return arr2;
+}
+
+encrypt = (plainMatrix, keyMatrix) => {
+    let r = (plainMatrix[0].length == 4) ? 11 :
+        (plainMatrix[0].length == 4) ? 13 : 15;
+
+    let outputMatrix = JSON.parse( JSON.stringify( plainMatrix ) );
+    let extendedKey = createRoundKey( keyMatrix );
+
+    for (let i = 0; i < r; i++) {
+        switch (i) {
+            case 0:
+                outputMatrix = JSON.parse( JSON.stringify( hexMatrixBinaryhexMatrix(outputMatrix, transposeMatrix( extendedKey[i] ), xoringPolynomials ) ) );
+                break;
+            case r - 1:
+                outputMatrix = JSON.parse( JSON.stringify( hexMatrixBinaryhexMatrix( shiftRows( subBytes( outputMatrix ) ), transposeMatrix( extendedKey[i] ), xoringPolynomials) ) );
+                break;
+            default: 
+                outputMatrix = JSON.parse( JSON.stringify( hexMatrixBinaryhexMatrix( mixColumn( shiftRows( subBytes( outputMatrix ) ) ), transposeMatrix( extendedKey[i] ), xoringPolynomials) ) );
+        }
+    }
+
+    return outputMatrix;
+}
+
+matrixToString = arr => {
+    let str = '';
+
+    for (let i = 0; i < arr.length; i++)
+        for (let j = 0; j < arr[0].length; j++)
+            str += arr[i][j];
+
+
+    return str;
+}
+
+decrypt = (cipherMatrix, keyMatrix) => {
+    let r = (cipherMatrix[0].length == 4) ? 11 :
+        (cipherMatrix[0].length == 4) ? 13 : 15;
+
+    let outputMatrix = JSON.parse( JSON.stringify( cipherMatrix ) );
+    let extendedKey = createRoundKey( keyMatrix );
+
+    // console.log( extendedKey );
+
+    console.log( matrixToString( transposeMatrix( outputMatrix ) ) );
+    console.log( matrixToString( transposeMatrix( transposeMatrix( extendedKey[10] ) ) ) );
+    outputMatrix = hexMatrixBinaryhexMatrix( outputMatrix, transposeMatrix( extendedKey[10] ), xoringPolynomials );
+    console.log( matrixToString( transposeMatrix( outputMatrix ) ) );
+
+    for (let i = r - 2; i > 0; i--) {
+        switch (i) {
+            default:
+                // console.table( extendedKey[i] );
+                // console.table( inverseShiftRows( outputMatrix ) );
+                console.log( matrixToString( transposeMatrix( inverseShiftRows( outputMatrix ) ) ) );
+                console.log( matrixToString( transposeMatrix( inverseSubBytes( inverseShiftRows( outputMatrix ) ) ) ) );
+                console.log( matrixToString( extendedKey[i] ) );
+                console.log( matrixToString( transposeMatrix( hexMatrixBinaryhexMatrix( inverseSubBytes( inverseShiftRows( outputMatrix ) ), transposeMatrix( extendedKey[i] ), xoringPolynomials ) ) ) );
+                console.log( matrixToString( transposeMatrix( inverseMixColumn (hexMatrixBinaryhexMatrix( inverseSubBytes( inverseShiftRows( outputMatrix ) ), transposeMatrix( extendedKey[i] ), xoringPolynomials ) ) ) ) );
+                outputMatrix = JSON.parse( JSON.stringify( inverseMixColumn (hexMatrixBinaryhexMatrix( inverseSubBytes( inverseShiftRows( outputMatrix ) ), transposeMatrix( extendedKey[i] ), xoringPolynomials ) ) ) );
+                break;
+        }
+    }
+
+    let outputMatrix1 = JSON.parse( JSON.stringify( inverseShiftRows( outputMatrix ) ) );
+    
+    console.log( matrixToString( hexMatrixBinaryhexMatrix( 
+        inverseSubBytes( transposeMatrix( outputMatrix1 ) ), 
+        extendedKey[0], 
+        xoringPolynomials
+    ) ) );
+
+    console.table( inverseShiftRows( outputMatrix ) );
+    console.table( inverseSubBytes( inverseShiftRows( outputMatrix ) ) );
+    console.table( extendedKey[0] );
+    console.table( hexMatrixBinaryhexMatrix( inverseSubBytes( inverseShiftRows( outputMatrix ) ), transposeMatrix( extendedKey[0] ), xoringPolynomials ) );
+    console.table( inverseMixColumn (hexMatrixBinaryhexMatrix( inverseSubBytes( inverseShiftRows( outputMatrix ) ), transposeMatrix( extendedKey[0] ), xoringPolynomials ) ) );
+    outputMatrix = inverseMixColumn (hexMatrixBinaryhexMatrix( inverseSubBytes( inverseShiftRows( outputMatrix ) ), transposeMatrix( extendedKey[0] ), xoringPolynomials ) );
+
+    return outputMatrix;
 }

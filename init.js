@@ -94,7 +94,7 @@ for (let i = 0; i < bin_of_hex_63.length * 2; i++) {
             parseInt( zeroPad(S_BOX[i][j], 2)[0], bin_of_hex_63.length * 2 ) 
         ][ 
             parseInt( zeroPad(S_BOX[i][j], 2)[1], bin_of_hex_63.length * 2 ) 
-        ] = i.toString(bin_of_hex_63.length * 2) + j.toString(bin_of_hex_63.length * 2);
+        ] = zeroPad( i.toString(bin_of_hex_63.length * 2) + j.toString(bin_of_hex_63.length * 2), 2 );
     }
 }
 
@@ -135,38 +135,15 @@ let plainMatrix = transposeMatrix( [
     ["cc", "dd", "ee", "ff"]
 ] );
 
-console.table( plainMatrix );
-console.table( keyMatrix );
-
-encrypt = (plainMatrix, keyMatrix) => {
-    let r = (plainMatrix[0].length == 4) ? 11 :
-        (plainMatrix[0].length == 4) ? 13 : 15;
-
-    let outputMatrix = JSON.parse( JSON.stringify( plainMatrix ) );
-    let extendedKey = createRoundKey( keyMatrix );
-
-    for (let i = 0; i < r; i++) {
-        switch (i) {
-            case 0:
-                outputMatrix = JSON.parse( JSON.stringify( hexMatrixBinaryhexMatrix(outputMatrix, transposeMatrix( extendedKey[i] ), xoringPolynomials ) ) );
-                break;
-            case r - 1:
-                outputMatrix = JSON.parse( JSON.stringify( hexMatrixBinaryhexMatrix( shiftRows( subBytes( outputMatrix ) ), transposeMatrix( extendedKey[i] ), xoringPolynomials) ) );
-                break;
-            default: 
-                outputMatrix = JSON.parse( JSON.stringify( hexMatrixBinaryhexMatrix( mixColumn( shiftRows( subBytes( outputMatrix ) ) ), transposeMatrix( extendedKey[i] ), xoringPolynomials) ) );
-        }
-    }
-
-    return outputMatrix;
-}
-
-decrypt = (cipherMatrix, keyMatrix) => {
-    console.table(cipherMatrix);
-    console.table(keyMatrix);
-}
+// let cipherMatrix = [
+//     ["87", "f2", "4d", "97"], 
+//     ["ec", "6e", "4c", "90"], 
+//     ["4a", "c3", "46", "e7"], 
+//     ["8c", "d8", "95", "a6"]
+// ];
 
 let cipherMatrix = encrypt(plainMatrix, keyMatrix);
+
 // console.table( createRoundKey( keyMatrix ) );
-console.table( cipherMatrix );
-// console.table( decrypt(cipherMatrix, keyMatrix) );
+// console.table( cipherMatrix );
+console.table( decrypt(cipherMatrix, keyMatrix) );
