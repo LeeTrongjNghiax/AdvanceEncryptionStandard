@@ -98,31 +98,31 @@ for (let i = 0; i < bin_of_hex_63.length * 2; i++) {
     }
 }
 
-let key_hex_16 = "000102030405060708090a0b0c0d0e0f";
-let key_hex_24 = "000102030405060708090a0b0c0d0e0f1011121314151617";
-let key_hex_32 = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f";
-let N = (key_hex_24.length / 2) / 4;
-let keyMatrix = [];
+// let key_hex_16 = "000102030405060708090a0b0c0d0e0f";
+// let key_hex_24 = "000102030405060708090a0b0c0d0e0f1011121314151617";
+// let key_hex_32 = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f";
+// let N = (key_hex_24.length / 2) / 4;
+// let keyMatrix = [];
 
-let count = 0;
+// let count = 0;
 
-for (let i = 0; i < N; i++)
-    keyMatrix[i] = [];
+// for (let i = 0; i < N; i++)
+//     keyMatrix[i] = [];
 
-for (let i = 0; i < N; i++)
-    for (let j = 0; j < 4; j++) {
-        keyMatrix[i][j] = key_hex_24[count] + key_hex_24[count + 1];
-        count += 2;
-    }
+// for (let i = 0; i < N; i++)
+//     for (let j = 0; j < 4; j++) {
+//         keyMatrix[i][j] = key_hex_24[count] + key_hex_24[count + 1];
+//         count += 2;
+//     }
 
-let plainMatrix = [
-    ["00", "11", "22", "33"], 
-    ["44", "55", "66", "77"], 
-    ["88", "99", "aa", "bb"], 
-    ["cc", "dd", "ee", "ff"]
-];
+// let plainMatrix = [
+//     ["00", "11", "22", "33"], 
+//     ["44", "55", "66", "77"], 
+//     ["88", "99", "aa", "bb"], 
+//     ["cc", "dd", "ee", "ff"]
+// ];
 
-let cipherMatrix = encrypt(plainMatrix, keyMatrix);
+// let cipherMatrix = encrypt(plainMatrix, keyMatrix);
 
-console.table( cipherMatrix );
-console.table( decrypt( transposeMatrix( encrypt(plainMatrix, keyMatrix) ), keyMatrix) );
+// console.table( cipherMatrix );
+// console.table( decrypt( transposeMatrix( encrypt(plainMatrix, keyMatrix) ), keyMatrix) );

@@ -137,6 +137,7 @@ document.getElementById("btnDecryption").addEventListener("click", () => {
 			keyMatrix[i] = [];
 			for (let j = 0; j < length / 8 / 4; j++) {
 				plainMatrix[i][j] = zeroPad( plainText[count].charCodeAt(0).toString(16), 2 );
+				// plainMatrix[i][j] = plainText.substring(count * 4, count * 4 + 4);
 				keyMatrix[i][j] = zeroPad( key[count].charCodeAt(0).toString(16), 2 );
 				count++;
 			}
@@ -145,7 +146,7 @@ document.getElementById("btnDecryption").addEventListener("click", () => {
 		console.log(plainMatrix);
 		console.log(keyMatrix);
 
-		let cipherMatrix = transposeMatrix( decrypt(transposeMatrix( plainMatrix ), keyMatrix) );
+		let cipherMatrix = decrypt(transposeMatrix( plainMatrix ), keyMatrix);
 		let cipherText = "";
 
 		console.log(cipherMatrix);
