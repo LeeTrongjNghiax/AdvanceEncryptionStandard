@@ -9,6 +9,11 @@ xor = (a, b) => {
         return 1;
 }
 
+function resize() {
+    this.style.height = 0;
+    this.style.height = (this.scrollHeight) + "px";
+}
+
 String.prototype.hexEncode = function(){
     var hex, i;
 
@@ -931,4 +936,39 @@ decrypt = (cipherMatrix, keyMatrix) => {
     // console.log( outputMatrix );
 
     return outputMatrix;
+}
+
+isValidEncrypt = (p, k, l) => {
+    if ( p.length < 1 ) {
+        alert(`Please fill out plain text to encrypt`);
+        return false;
+    }
+
+    if ( k.length < 1 ) {
+        alert(`Please fill out key to encrypt`);
+        return false;
+    }
+
+    switch (l) {
+        case "128":
+            if ( k.length != 16 ) {
+                alert(`Key length must have 16 characters`);
+                return false;
+            }
+            break;
+        case "192":
+            if ( k.length != 24 ) {
+                alert(`Key length must have 24 characters`);
+                return false;
+            }
+            break;
+        case "256":
+            if ( k.length != 32 ) {
+                alert(`Key length must have 32 characters`);
+                return false;
+            }
+            break;
+    }
+
+    return true;
 }

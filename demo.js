@@ -83,82 +83,157 @@ document.getElementById("btnEncryption").addEventListener("click", () => {
 		let keyMatrix = [];
 		let count = 0;
 		let length = document.getElementById("selectLengthOfKey").options[document.getElementById("selectLengthOfKey").selectedIndex].value;
+		let multiOfLength = 0;
 
-		while ( plainText.length <= length / 8 )
-			plainText += " ";
+		while (multiOfLength * length / 8 < plainText.length)
+			multiOfLength++;
 
-		console.log( plainText );
+		console.log(multiOfLength);
 
-		for (let i = 0; i < 4; i++) {
-			plainMatrix[i] = [];
-			keyMatrix[i] = [];
-			for (let j = 0; j < length / 8 / 4; j++) {
-				plainMatrix[i][j] = zeroPad( plainText[count].charCodeAt(0).toString(16), 2 );
-				keyMatrix[i][j] = zeroPad( key[count].charCodeAt(0).toString(16), 2 );
-				count++;
+		if ( plainText.length % (length / 8) != 0 )
+			while ( plainText.length < (length / 8) * (multiOfLength + 1))
+				plainText += " ";
+
+		console.log( plainText.length );
+
+		for (let k = 0; k < multiOfLength; k++) {
+			count = 0;
+			let arr = [];
+
+			for (let i = 0; i < 4; i++) {
+				arr[i] = [];
+				keyMatrix[i] = [];
+				for (let j = 0; j < length / 8 / 4; j++) {
+					arr[i][j] = zeroPad( plainText[k * (length / 8) + count].charCodeAt(0).toString(16), 2 );
+					keyMatrix[i][j] = zeroPad( key[count].charCodeAt(0).toString(16), 2 );
+					count++;
+				}
 			}
+			plainMatrix.push( arr );
 		}
 
-		console.log(plainMatrix);
-		console.log(keyMatrix);
+		console.log( plainMatrix );
 
-		let cipherMatrix = encrypt(plainMatrix, keyMatrix);
 		let cipherText = "";
+		let resultHex = ""
 
-		console.log(cipherMatrix);
+		for (let k = 0; k < plainMatrix.length; k++) {
+			let cipherMatrix = encrypt(plainMatrix[k], keyMatrix);
 
-		for (let i = 0; i < cipherMatrix.length; i++) {
-			for (let j = 0; j < cipherMatrix[i].length; j++) {
-				cipherText += String.fromCharCode( parseInt( cipherMatrix[i][j], 16 ) );
+			for (let i = 0; i < cipherMatrix.length; i++) {
+				for (let j = 0; j < cipherMatrix[i].length; j++) {
+					cipherText += String.fromCharCode( parseInt( cipherMatrix[i][j], 16 ) );
+				}
 			}
+
+			resultHex += cipherMatrix;
 		}
+		// console.log(plainMatrix);
+		// console.log(keyMatrix);
 
-		console.log(cipherText);
+		// let cipherMatrix = encrypt(plainMatrix, keyMatrix);
 
-		document.getElementById("result").innerText = cipherText;	
-	}
-});
+		// console.log(cipherMatrix);
 
-document.getElementById("btnDecryption").addEventListener("click", () => {
-  let plainText = document.getElementById("text").value;
-  let key = document.getElementById("keyInput").value;
-  let notice = document.getElementById("noticeKey").innerText;
-
-  if ( isValidEncrypt() ) {
-		let plainMatrix = [];
-		let keyMatrix = [];
-		let count = 0;
-		let length = document.getElementById("selectLengthOfKey").options[document.getElementById("selectLengthOfKey").selectedIndex].value;
-
-		console.log( plainText );
-
-		for (let i = 0; i < 4; i++) {
-			plainMatrix[i] = [];
-			keyMatrix[i] = [];
-			for (let j = 0; j < length / 8 / 4; j++) {
-				plainMatrix[i][j] = zeroPad( plainText[count].charCodeAt(0).toString(16), 2 );
-				// plainMatrix[i][j] = plainText.substring(count * 4, count * 4 + 4);
-				keyMatrix[i][j] = zeroPad( key[count].charCodeAt(0).toString(16), 2 );
-				count++;
-			}
-		}
-
-		console.log(plainMatrix);
-		console.log(keyMatrix);
-
-		let cipherMatrix = decrypt(transposeMatrix( plainMatrix ), keyMatrix);
-		let cipherText = "";
-
-		console.log(cipherMatrix);
-
-		for (let i = 0; i < cipherMatrix.length; i++) {
-			for (let j = 0; j < cipherMatrix[i].length; j++) {
-				cipherText += String.fromCharCode( parseInt( cipherMatrix[i][j], 16 ) );
-			}
-		}
+		// for (let i = 0; i < cipherMatrix.length; i++) {
+		// 	for (let j = 0; j < cipherMatrix[i].length; j++) {
+		// 		cipherText += String.fromCharCode( parseInt( cipherMatrix[i][j], 16 ) );
+		// 	}
+		// }
 
 		console.log(cipherText);
 
 		document.getElementById("result").innerText = cipherText;
+		document.getElementById("result-hex").innerText = resultHex;	
 	}
 });
+
+// document.getElementById("btnDecryption").addEventListener("click", () => {
+//   let plainText = document.getElementById("text").value;
+//   let key = document.getElementById("keyInput").value;
+//   let notice = document.getElementById("noticeKey").innerText;
+
+//   if ( isValidEncrypt() ) {
+// 		let plainMatrix = [];
+// 		let keyMatrix = [];
+// 		let count = 0;
+// 		let length = document.getElementById("selectLengthOfKey").options[document.getElementById("selectLengthOfKey").selectedIndex].value;
+
+// 		console.log( plainText );
+
+// 		for (let i = 0; i < 4; i++) {
+// 			plainMatrix[i] = [];
+// 			keyMatrix[i] = [];
+// 			for (let j = 0; j < length / 8 / 4; j++) {
+// 				plainMatrix[i][j] = zeroPad( plainText[count].charCodeAt(0).toString(16), 2 );
+// 				// plainMatrix[i][j] = plainText.substring(count * 4, count * 4 + 4);
+// 				keyMatrix[i][j] = zeroPad( key[count].charCodeAt(0).toString(16), 2 );
+// 				count++;
+// 			}
+// 		}
+
+// 		console.log(plainMatrix);
+// 		console.log(keyMatrix);
+
+// 		let cipherMatrix = decrypt(transposeMatrix( plainMatrix ), keyMatrix);
+// 		let cipherText = "";
+
+// 		console.log(cipherMatrix);
+
+// 		for (let i = 0; i < cipherMatrix.length; i++) {
+// 			for (let j = 0; j < cipherMatrix[i].length; j++) {
+// 				cipherText += String.fromCharCode( parseInt( cipherMatrix[i][j], 16 ) );
+// 			}
+// 		}
+
+// 		console.log(cipherText);
+
+// 		document.getElementById("result").innerText = cipherText;
+// 		document.getElementById("result-hex").innerText = cipherMatrix;
+// 	}
+// });
+
+document.getElementById("btnDecryption").addEventListener("click", () => {
+	let plainText = document.getElementById("text").value;
+	let key = document.getElementById("keyInput").value;
+	let notice = document.getElementById("noticeKey").innerText;
+  
+	if ( isValidEncrypt() ) {
+		  let plainMatrix = [];
+		  let keyMatrix = [];
+		  let count = 0;
+		  let length = document.getElementById("selectLengthOfKey").options[document.getElementById("selectLengthOfKey").selectedIndex].value;
+  
+		//   for (let i = 0; i <)
+  
+		  for (let i = 0; i < 4; i++) {
+			  plainMatrix[i] = [];
+			  keyMatrix[i] = [];
+			  for (let j = 0; j < length / 8 / 4; j++) {
+				  plainMatrix[i][j] = zeroPad( plainText[count].charCodeAt(0).toString(16), 2 );
+				  // plainMatrix[i][j] = plainText.substring(count * 4, count * 4 + 4);
+				  keyMatrix[i][j] = zeroPad( key[count].charCodeAt(0).toString(16), 2 );
+				  count++;
+			  }
+		  }
+  
+		  console.log(plainMatrix);
+		  console.log(keyMatrix);
+  
+		  let cipherMatrix = decrypt(transposeMatrix( plainMatrix ), keyMatrix);
+		  let cipherText = "";
+  
+		  console.log(cipherMatrix);
+  
+		  for (let i = 0; i < cipherMatrix.length; i++) {
+			  for (let j = 0; j < cipherMatrix[i].length; j++) {
+				  cipherText += String.fromCharCode( parseInt( cipherMatrix[i][j], 16 ) );
+			  }
+		  }
+  
+		  console.log(cipherText);
+  
+		  document.getElementById("result").innerText = cipherText;
+		  document.getElementById("result-hex").innerText = cipherMatrix;
+	  }
+  });
