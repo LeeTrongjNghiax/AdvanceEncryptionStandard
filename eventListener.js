@@ -1,7 +1,7 @@
 const tx = document.getElementsByTagName("textarea");
 
 for (let i = 0; i < tx.length; i++) {
-  tx[i].setAttribute("style", "height:" + (tx[i].scrollHeight) + "px;overflow-y:hidden;");
+  tx[i].setAttribute("style", "height:" + (tx[i].scrollHeight * 2) + "px;overflow-y:hidden;");
   tx[i].addEventListener("input", resize, false);
 }
 
@@ -14,58 +14,64 @@ document.querySelector("#encrypt").addEventListener("click", () => {
     if ( isValidEncrypt(plain, key, length) ) {
         let plainMatrix = [];
 		let keyMatrix = [];
-		let count = 0;
 		let multiOfLength = 0;
+		let resultHex = "";
+		let count = 0;
 
-		while (multiOfLength * length / 8 < plain.length)
+		while (multiOfLength * 16 < plain.length)
 			multiOfLength++;
 
-		console.log(multiOfLength);
+		console.log( multiOfLength );
 
-		if ( plain.length % (length / 8) != 0 )
-			while ( plain.length < (length / 8) * (multiOfLength + 1))
-            plain += " ";
+		if ( plain.length % 16 != 0 )
+			while ( plain.length < 16 * (multiOfLength))
+            	plain += " ";
 
 		console.log( plain.length );
 
+		for (let i = 0; i < 4; i++) {
+			keyMatrix[i] = [];
+
+			for (let j = 0; j < length / 8 / 4; j++) {
+				keyMatrix[i][j] = zeroPad( key[count].charCodeAt(0).toString(16), 2 );
+				count++;
+			}
+		}
+
+		console.log( keyMatrix );
+
 		for (let k = 0; k < multiOfLength; k++) {
-			count = 0;
+			let count = 0;
 			let arr = [];
 
 			for (let i = 0; i < 4; i++) {
 				arr[i] = [];
-				keyMatrix[i] = [];
-				for (let j = 0; j < length / 8 / 4; j++) {
-					arr[i][j] = zeroPad( plain[k * (length / 8) + count].charCodeAt(0).toString(16), 2 );
-					keyMatrix[i][j] = zeroPad( key[count].charCodeAt(0).toString(16), 2 );
+
+				for (let j = 0; j < 4; j++) {
+					arr[i][j] = zeroPad( plain[k * 16 + count].charCodeAt(0).toString(16), 2 );
 					count++;
 				}
 			}
+
 			plainMatrix.push( arr );
 		}
 
 		console.log( plainMatrix );
 
-		let cipherText = "";
-		let resultHex = ""
-
 		for (let k = 0; k < plainMatrix.length; k++) {
+			let cipherText = "";
 			let cipherMatrix = encrypt(plainMatrix[k], keyMatrix);
+			console.log( cipherMatrix );
 
-			for (let i = 0; i < cipherMatrix.length; i++) {
-				for (let j = 0; j < cipherMatrix[i].length; j++) {
+			for (let i = 0; i < cipherMatrix.length; i++)
+				for (let j = 0; j < cipherMatrix[i].length; j++)
 					cipherText += String.fromCharCode( parseInt( cipherMatrix[i][j], 16 ) );
-				}
-			}
 
 			resultHex += cipherText;
 		}
-		// console.log(plainMatrix);
-		// console.log(keyMatrix);
 
-		console.log(cipherText);
+		console.log( "Length: " + resultHex.length );
 
-		// document.getElementById("cipherInput").innerText = cipherText;
 		cipherInput.value = resultHex;	
     }
 });
@@ -87,43 +93,60 @@ document.querySelector("#decrypt").addEventListener("click", () => {
     let plainInput = document.querySelector("#plainText");
     let key = document.querySelector("#key").value;
     let cipher = document.querySelector("#cipherText").value;
+	let length = document.querySelector("#keySize").options[document.querySelector("#keySize").selectedIndex].value;
 
     if ( isValidEncrypt(cipher, key, length) ) {
-        let plainMatrix = [];
+        let cipherMatrix = [];
 		let keyMatrix = [];
+		let resultHex = "";
 		let count = 0;
-		let length = document.querySelector("#keySize").options[document.querySelector("#keySize").selectedIndex].value;
+		let multiOfLength = cipher.length / 16;
 
-		console.log( cipher );
+		console.log( "MultiOfLength: " + multiOfLength );
 
 		for (let i = 0; i < 4; i++) {
-			plainMatrix[i] = [];
 			keyMatrix[i] = [];
+
 			for (let j = 0; j < length / 8 / 4; j++) {
-				plainMatrix[i][j] = zeroPad( cipher[count].charCodeAt(0).toString(16), 2 );
-				// plainMatrix[i][j] = cipher.substring(count * 4, count * 4 + 4);
 				keyMatrix[i][j] = zeroPad( key[count].charCodeAt(0).toString(16), 2 );
 				count++;
 			}
 		}
 
-		console.log(plainMatrix);
-		console.log(keyMatrix);
+		for (let k = 0; k < multiOfLength; k++) {
+			let count = 0;
+			let arr = [];
 
-		let cipherMatrix = decrypt(transposeMatrix( plainMatrix ), keyMatrix);
-		let cipherText = "";
+			for (let i = 0; i < 4; i++) {
+				arr[i] = [];
 
-		console.log(cipherMatrix);
-
-		for (let i = 0; i < cipherMatrix.length; i++) {
-			for (let j = 0; j < cipherMatrix[i].length; j++) {
-				cipherText += String.fromCharCode( parseInt( cipherMatrix[i][j], 16 ) );
+				for (let j = 0; j < 4; j++) {
+					arr[i][j] = zeroPad( cipher[k * 16 + count].charCodeAt(0).toString(16), 2 );
+					count++;
+				}
 			}
+
+			cipherMatrix.push( arr );
 		}
 
-		console.log(cipherText);
+		console.log( cipherMatrix );
 
-		plainInput.value = cipherText;
+		for (let k = 0; k < cipherMatrix.length; k++) {
+			let plainText = "";
+			let plainMatrix = decrypt( cipherMatrix[k], keyMatrix );
+
+			console.log( plainMatrix );
+
+			for (let i = 0; i < 4; i++) {
+				for (let j = 0; j < 4; j++) {
+					plainText += String.fromCharCode( parseInt( plainMatrix[i][j], 16 ) );
+				}
+			}
+
+			resultHex += plainText + "|";
+		}
+
+		plainInput.value = resultHex;
     }
 });
 

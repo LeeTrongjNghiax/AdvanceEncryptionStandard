@@ -803,7 +803,7 @@ encrypt = (plainMatrix, keyMatrix) => {
 }
 
 decrypt = (cipherMatrix, keyMatrix) => {
-    let outputMatrix = JSON.parse( JSON.stringify( cipherMatrix ) );
+    let outputMatrix = JSON.parse( JSON.stringify( transposeMatrix( cipherMatrix ) ) );
     let extendedKey = createRoundKey( keyMatrix );
     let r = (keyMatrix.length == 4) ? 11 :
         (keyMatrix.length == 6) ? 13 : 15;
@@ -971,4 +971,139 @@ isValidEncrypt = (p, k, l) => {
     }
 
     return true;
+}
+
+decrypt256 = (cipherMatrix, keyMatrix) => {
+    let outputMatrix = JSON.parse( JSON.stringify( transposeMatrix( cipherMatrix ) ) );
+    let extendedKey = createRoundKey( keyMatrix );
+    let r = 15;
+
+    console.log( extendedKey );
+
+    console.log( matrixToString( transposeMatrix( outputMatrix ) ) );
+    console.log( matrixToString( 
+        extendedKey.slice(-4) 
+    ) );
+
+    outputMatrix = hexMatrixBinaryhexMatrix( 
+        transposeMatrix( outputMatrix ), 
+        extendedKey.slice(-4), 
+        xoringPolynomials 
+    );
+
+    console.log( matrixToString( outputMatrix ) );
+
+    for (let i = r - 2; i > 0; i--) {
+        console.log( (i + 1) * 4 );
+        console.table( matrixToString( 
+            transposeMatrix(
+                inverseShiftRows( 
+                    transposeMatrix( outputMatrix ) 
+                ) 
+            )
+        ) );
+        console.log( matrixToString( 
+                inverseSubBytes( 
+                    transposeMatrix(
+                        inverseShiftRows( 
+                            transposeMatrix( outputMatrix ) 
+                        ) 
+                    )
+                ) 
+            ) 
+        );
+        console.log( matrixToString( extendedKey.slice((i) * 4, (i) * 4 + 4) ) );
+        console.log( matrixToString( 
+            transposeMatrix( 
+                hexMatrixBinaryhexMatrix( 
+                    transposeMatrix(
+                        inverseSubBytes( 
+                            transposeMatrix(
+                                inverseShiftRows( 
+                                    transposeMatrix( outputMatrix ) 
+                                ) 
+                            )
+                        )
+                    ), 
+                    transposeMatrix(
+                        extendedKey.slice((i) * 4, (i) * 4 + 4)
+                    ), 
+                    xoringPolynomials 
+                ) 
+            ) 
+        ) );
+        console.log( matrixToString( 
+            transposeMatrix( 
+                inverseMixColumn(
+                    
+                        hexMatrixBinaryhexMatrix( 
+                            transposeMatrix(
+                                inverseSubBytes( 
+                                    transposeMatrix(
+                                        inverseShiftRows( 
+                                            transposeMatrix( outputMatrix ) 
+                                        ) 
+                                    )
+                                )
+                            ), 
+                            transposeMatrix(
+                                extendedKey.slice((i) * 4, (i) * 4 + 4)
+                            ), 
+                            xoringPolynomials 
+                        ) 
+                    
+                ) 
+            ) 
+        ) );
+
+        outputMatrix = JSON.parse( 
+            JSON.stringify( 
+                transposeMatrix( 
+                    inverseMixColumn(         
+                        hexMatrixBinaryhexMatrix( 
+                            transposeMatrix(
+                                inverseSubBytes( 
+                                    transposeMatrix(
+                                        inverseShiftRows( 
+                                            transposeMatrix( outputMatrix ) 
+                                        ) 
+                                    )
+                                )
+                            ), 
+                            transposeMatrix(
+                                extendedKey.slice((i) * 4, (i) * 4 + 4)
+                            ), 
+                            xoringPolynomials 
+                        ) 
+                    ) 
+                )
+            ) 
+        );
+    }
+    
+    outputMatrix = JSON.parse( 
+        JSON.stringify( 
+            transposeMatrix( 
+                hexMatrixBinaryhexMatrix( 
+                    transposeMatrix(
+                        inverseSubBytes( 
+                            transposeMatrix(
+                                inverseShiftRows( 
+                                    transposeMatrix( outputMatrix ) 
+                                ) 
+                            )
+                        )
+                    ), 
+                    transposeMatrix(
+                        extendedKey.slice(0, 4)
+                    ), 
+                    xoringPolynomials 
+                ) 
+            )
+        ) 
+    );
+
+    console.log( outputMatrix );
+
+    return outputMatrix;
 }
