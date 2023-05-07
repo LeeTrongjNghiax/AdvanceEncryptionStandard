@@ -127,9 +127,4 @@ let lmao = [
     ["51", "67", "45", "bf"], 
     ["ea", "fc", "49", "90"], 
     ["4b", "49", "60", "89"]
-]
-
-// let cipherMatrix = encrypt(plainMatrix, keyMatrix);
-
-// console.table( cipherMatrix );
-// console.table( decrypt256( lmao, keyMatrix) );
+];

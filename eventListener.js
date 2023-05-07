@@ -18,16 +18,15 @@ document.querySelector("#encrypt").addEventListener("click", () => {
 		let resultHex = "";
 		let count = 0;
 
+		console.log("Plain text: " + plain);
+		console.log("Key: " + key);
+
 		while (multiOfLength * 16 < plain.length)
 			multiOfLength++;
-
-		console.log( multiOfLength );
 
 		if ( plain.length % 16 != 0 )
 			while ( plain.length < 16 * (multiOfLength))
             	plain += " ";
-
-		console.log( plain.length );
 
 		for (let i = 0; i < 4; i++) {
 			keyMatrix[i] = [];
@@ -37,8 +36,6 @@ document.querySelector("#encrypt").addEventListener("click", () => {
 				count++;
 			}
 		}
-
-		console.log( keyMatrix );
 
 		for (let k = 0; k < multiOfLength; k++) {
 			let count = 0;
@@ -56,21 +53,27 @@ document.querySelector("#encrypt").addEventListener("click", () => {
 			plainMatrix.push( arr );
 		}
 
-		console.log( plainMatrix );
+		console.log("Plain text to hex: ");
+		console.table( plainMatrix );
+		console.log("Key to hex: ");
+		console.table( keyMatrix );
 
 		for (let k = 0; k < plainMatrix.length; k++) {
 			let cipherText = "";
 			let cipherMatrix = encrypt(plainMatrix[k], keyMatrix);
-			console.log( cipherMatrix );
 
 			for (let i = 0; i < cipherMatrix.length; i++)
 				for (let j = 0; j < cipherMatrix[i].length; j++)
 					cipherText += String.fromCharCode( parseInt( cipherMatrix[i][j], 16 ) );
 
 			resultHex += cipherText;
+
+			console.log("Cipher to hex: ");
+			console.table( cipherMatrix );
 		}
 
-		console.log( "Length: " + resultHex.length );
+		console.log("Cipher: " + resultHex);
+		console.log("--------------------------------------------------------");
 
 		cipherInput.value = resultHex;	
     }
@@ -102,7 +105,8 @@ document.querySelector("#decrypt").addEventListener("click", () => {
 		let count = 0;
 		let multiOfLength = cipher.length / 16;
 
-		console.log( "MultiOfLength: " + multiOfLength );
+		console.log("Cipher text: " + cipher);
+		console.log("Key: " + key);
 
 		for (let i = 0; i < 4; i++) {
 			keyMatrix[i] = [];
@@ -121,6 +125,7 @@ document.querySelector("#decrypt").addEventListener("click", () => {
 				arr[i] = [];
 
 				for (let j = 0; j < 4; j++) {
+					// console.log("String: " + cipher[k * 16 + count] + ", Str: " + cipher[k * 16 + count].charCodeAt(0) + ", Code: " + zeroPad( cipher[k * 16 + count].charCodeAt(0).toString(16), 2 ));
 					arr[i][j] = zeroPad( cipher[k * 16 + count].charCodeAt(0).toString(16), 2 );
 					count++;
 				}
@@ -129,13 +134,14 @@ document.querySelector("#decrypt").addEventListener("click", () => {
 			cipherMatrix.push( arr );
 		}
 
-		console.log( cipherMatrix );
+		console.log("Cipher text to hex: ");
+		console.table( cipherMatrix );
+		console.log("Key to hex: ");
+		console.table( keyMatrix );
 
 		for (let k = 0; k < cipherMatrix.length; k++) {
 			let plainText = "";
 			let plainMatrix = decrypt( cipherMatrix[k], keyMatrix );
-
-			console.log( plainMatrix );
 
 			for (let i = 0; i < 4; i++) {
 				for (let j = 0; j < 4; j++) {
@@ -143,8 +149,14 @@ document.querySelector("#decrypt").addEventListener("click", () => {
 				}
 			}
 
-			resultHex += plainText + "|";
+			resultHex += plainText;
+
+			console.log("Plain to hex: ");
+			console.table( plainMatrix );
 		}
+
+		console.log("Plain: " + resultHex);
+		console.log("--------------------------------------------------------");
 
 		plainInput.value = resultHex;
     }
